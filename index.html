@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<h1>Users Telenorma</h1>
+
+<form id="user-form" method="POST">
+    <input name="id" id="id" type="hidden" value=""/>
+    <p><label for="first_name" class="form-label">First name</label>
+        <br>
+        <input type="text" class="form-control" id="first_name" name="first_name"></p>
+    <p><label for="last_name" class="form-label">Last name</label>
+        <br>
+        <input type="text" class="form-control" id="last_name" name="last_name"></p>
+    <p><label for="position-select">Position</label>
+        <br>
+        <select name="position" id="position-select">
+            <option value="">--Please choose an option--</option>
+            <option value="Developer">Developer</option>
+            <option value="Manager">Manager</option>
+            <option value="Tester">Tester</option>
+        </select></p>
+    <p>
+        <button onclick="createRecord(event)">Submit</button>
+    </p>
+</form>
+<div id="root"></div>
+<script>
+    document.addEventListener('DOMContentLoaded', (event) => {
+        loadTable();
+    });
+
+    function loadTable() {
+        var xmlhttp = new XMLHttpRequest();
+        xmlhttp.onreadystatechange = function () {
+            if (this.readyState == 4 && this.status == 200) {
+                // Typical action to be performed when the document is ready:
+                document.getElementById("root").innerHTML = xmlhttp.responseText;
+            }
+        };
+        xmlhttp.open("GET", "/load_data.php", true);
+        xmlhttp.send();
+    }
+
+    function deleteRecord(id) {
+        var xmlhttp = new XMLHttpRequest();   // new HttpRequest instance
+        var theUrl = "/delete.php";
+        xmlhttp.open("POST", theUrl);
+        xmlhttp.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+        xmlhttp.send(JSON.stringify({id: id}));
+        loadTable();
+    }
+
+    function editRecord(id) {
+        var xmlhttp = new XMLHttpRequest();   // new HttpRequest instance
+        var theUrl = "/single.php" + "?id=" + id;
+        xmlhttp.onreadystatechange = function () {
+            if (this.readyState == 4 && this.status == 200) {
+                var result = JSON.parse(xmlhttp.responseText);
+                document.getElementById("id").value = result.id;
+                document.getElementById("first_name").value = result.first_name;
+                document.getElementById("last_name").value = result.last_name;
+                document.getElementById("position-select").value = result.position;
+            }
+        };
+        xmlhttp.open("GET", theUrl, true);
+        xmlhttp.send();
+    }
+
+    function createRecord(e) {
+        e.preventDefault();
+        const xmlhttp = new XMLHttpRequest();   // new HttpRequest instance
+        const theUrl = "/create.php";
+
+        let form = document.forms["user-form"];
+        let fd = new FormData(form);
+        let data = {};
+        for (let [key, prop] of fd) {
+            data[key] = prop;
+        }
+        xmlhttp.open("POST", theUrl);
+        xmlhttp.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+        xmlhttp.send(JSON.stringify(data));
+        loadTable();
+        form.reset();
+        document.getElementById("id").value = null;
+        return false;
+    }
+
+</script>
+</body>
+</html>
